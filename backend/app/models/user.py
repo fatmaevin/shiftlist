@@ -1,11 +1,14 @@
+from typing import TYPE_CHECKING
 from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, String, Uuid, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-
+if TYPE_CHECKING:
+    from app.models.product import Product
+    from app.models.shopping_list import ShoppingList
 
 class User(Base):
     __tablename__ = "users"
@@ -39,4 +42,14 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+    products: Mapped[list["Product"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    shopping_lists: Mapped[list["ShoppingList"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
