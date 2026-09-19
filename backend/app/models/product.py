@@ -1,34 +1,47 @@
-from typing import TYPE_CHECKING
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, String, Uuid, func
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    String,
+    Uuid,
+    func,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-if TYPE_CHECKING:
-    from app.models.product import Product
 
-class User(Base):
-    __tablename__ = "users"
+if TYPE_CHECKING:
+    from app.models.user import User
+
+
+class Product(Base):
+    __tablename__ = "products"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "name",
+            name="uq_products_owner_id_name",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
         primary_key=True,
         default=uuid4,
     )
-    business_name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-    )
-    email: Mapped[str] = mapped_column(
-        String(320),
-        unique=True,
+    owner_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         index=True,
         nullable=False,
     )
-    password_hash: Mapped[str] = mapped_column(
-        String(255),
+    name: Mapped[str] = mapped_column(
+        String(120),
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -42,8 +55,7 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    products: Mapped[list["Product"]] = relationship(
-        back_populates="owner",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
+
+    owner: Mapped["User"] = relationship(
+        back_populates="products",
     )
