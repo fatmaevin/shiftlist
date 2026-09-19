@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 if TYPE_CHECKING:
     from app.models.product import Product
+    from app.models.shopping_list import ShoppingList
 
 class User(Base):
     __tablename__ = "users"
@@ -43,6 +44,11 @@ class User(Base):
         nullable=False,
     )
     products: Mapped[list["Product"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    shopping_lists: Mapped[list["ShoppingList"]] = relationship(
         back_populates="owner",
         cascade="all, delete-orphan",
         passive_deletes=True,
