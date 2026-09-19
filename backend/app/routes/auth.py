@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.dependencies.auth import get_current_user
 
 from app.database import get_db
 from app.models import User
@@ -62,3 +63,13 @@ def login_manager(
     return TokenResponse(
         access_token=create_access_token(user.id),
     )
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+)
+def get_authenticated_manager(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    return current_user
