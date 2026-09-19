@@ -32,6 +32,19 @@ class RegisterRequest(BaseModel):
         return value
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email(cls, value):
+        if isinstance(value, str):
+            return value.strip().lower()
+
+        return value
+
+
 class UserResponse(BaseModel):
     id: UUID
     business_name: str
@@ -39,3 +52,8 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

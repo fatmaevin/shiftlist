@@ -3,11 +3,14 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import User
-from app.schemas.auth import RegisterRequest
-from app.security import hash_password
-
+from app.schemas.auth import LoginRequest, RegisterRequest
+from app.security import hash_password, verify_password
 
 class EmailAlreadyRegisteredError(Exception):
+    pass
+
+
+class InvalidCredentialsError(Exception):
     pass
 
 
@@ -37,5 +40,20 @@ def register_user(
         raise EmailAlreadyRegisteredError from error
 
     session.refresh(user)
+
+    return user
+
+
+def authenticate_user(
+    session: Session,
+    credentials: LoginRequest,
+) -> User:
+    user = session.scalar(select(User).where(User.email == str(credentials.email)))
+
+    if user is None or not verify_password(
+        credentials.password,
+        user.password_hash,
+    ):
+        raise InvalidCredentialsError
 
     return user
